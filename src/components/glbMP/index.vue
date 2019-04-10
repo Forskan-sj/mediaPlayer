@@ -70,7 +70,9 @@ export default {
       myaudio.onloadedmetadata = () => {
         myaudio.currentTime = this.$store.getters.media.rtime
         this.$store.commit('play')
-        myaudio.play()
+        setTimeout(() => {
+          myaudio.play()
+        }, 1000)
       }
       // myaudio.onended = () => {
       //   this.$store.commit('playNext')
