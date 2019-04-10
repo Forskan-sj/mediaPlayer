@@ -59,7 +59,6 @@ export default {
     },
     updateTime() {
       var vm = this
-      // console.log('object')
       var myaudio = document.getElementById('audioPlay')
       var time = parseInt(myaudio.currentTime)
       myaudio.onsuspend = () => {
@@ -76,7 +75,6 @@ export default {
       // }
       vm.$store.commit('updateDurationTime', parseInt(myaudio.duration))
       vm.$store.commit('updateCurrentTime', time)
-      // if (this.)
     },
     canPlayMedia() {
       var myaudio = document.getElementById('audioPlay')
