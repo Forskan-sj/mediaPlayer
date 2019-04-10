@@ -242,6 +242,7 @@ export default {
             pushTime(this.$store.getters.courseInfo.id, this.$store.getters.mediaList[this.currentIndex - 1].id, this.currentTime).then(response => {
             })
           }
+          this.$store.commit('setCurrentIndex', 0)
           this.$store.commit('setMediaList', this.pageData.chapter)
           this.$store.commit('setMedia')
         }
