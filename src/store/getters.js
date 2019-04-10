@@ -4,6 +4,7 @@ const getters = {
   token: state => state.user.token,
   courseId: state => state.app.courseId,
   name: state => state.user.name,
+  courseInfo: state => state.media.courseInfo,
   media: state => state.media.audio,
   bplaying: state => state.media.bplaying,
   bloading: state => state.media.bloading,
@@ -14,6 +15,7 @@ const getters = {
   tmpCurrentTime: state => state.media.tmpCurrentTime,
   mediaList: state => state.media.mediaList,
   currentTime: state => state.media.currentTime,
+  change: state => state.media.change,
   prCurrentTime: state => {
     return state.media.currentTime / state.media.durationTime * 100
   },

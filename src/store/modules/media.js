@@ -5,10 +5,15 @@ const media = {
   state: {
     audio: {
       'id': 0,
-      'name': '',
-      'url': ''
+      'title': '',
+      'media': '',
+      'rtime': 0
     },
-    currentIndex: 0,
+    courseInfo: {
+      id: 0,
+      poster: ''
+    },
+    currentIndex: 1,
     bplaying: false,
     bloading: false,
     showDetail: false,
@@ -31,6 +36,12 @@ const media = {
     },
     setMedia(state) {
       state.audio = state.mediaList[state.currentIndex - 1]
+    },
+    setCourseInfo(state, info) {
+      state.courseInfo = info
+    },
+    setCurrentIndex(state, index) {
+      state.currentIndex = index + 1
     },
     setAudioIndex(state, index) {
       state.audio = state.mediaList[index]
@@ -64,6 +75,9 @@ const media = {
     changeTime(state, time) {
       state.tmpCurrentTime = time
     },
+    setChange(state, flag) {
+      state.change = flag
+    },
     openLoading(state) {
       state.bloading = true
     },
@@ -93,8 +107,7 @@ const media = {
       }
     }
   },
-  actions: {
-  }
+  actions: {}
 }
 
 export default media

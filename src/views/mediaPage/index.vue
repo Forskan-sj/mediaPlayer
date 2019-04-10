@@ -9,29 +9,47 @@
         <div :class="{cuLiked: pageData.is_like}" class="cuLike" @click="cuLike"/>
       </div>
       <!-- <div id="turnAround" :style="turnAroundStyle" class="turnAround" style="display:none" @click="turnAround" /> -->
-      <div id="videoPlayDIV" :style="videoPlayerStyle" class="videoPlayer">
+      <!-- <div id="videoPlayDIV" :style="videoPlayerStyle" class="videoPlayer">
         <video :poster="pageData.poster" webkit-playsinline="" playsinline="" x5-playsinline="" x-webkit-airplay="allow">
           <source :src="mediaSource" type="video/mp4">
         </video>
-      </div>
+      </div> -->
       <!-- <div :style="fullScr" class="fullScreen" @click="fuScr"/> -->
+      <div :class="{'cd-rotate': bplaying}" class="cd-wrapper">
+        <div class="cd-mask"/>
+        <img :src="courseInfo.poster" class="cd-img">
+      </div>
+      <div class="pro-wrap">
+        <slider v-model="prCurrentTime" class="song-slider" @change="changeTime"/>
+      </div>
+      <div class="time">
+        <div id="cur">{{ currentTime | time }}</div>
+        <div id="total">{{ durationTime | time }}</div>
+      </div>
+      <div class="optionBtns">
+        <div :class="{cuLiked: pageData.is_like}" class="cuLike" @click="cuLike"/>
+        <div class="mini-btn player-list" @click="playPrev"/>
+        <div :class="{pause: bplaying}" class="mini-btn player" @click="toggleStatus"/>
+        <div class="mini-btn next" @click="playNext"/>
+        <div :class="{cuLiked: pageData.is_like}" class="cuLike" @click="cuLike"/>
+      </div>
       <div class="forpos"/>
       <div class="title">
-        <div :class="{selCTitle: !tabIndex}" class="couseKind" @click="tabCkIndex(0)">课程章节({{ chapterIndex }}/{{ pageData.chapter.length }})</div>
+        <div :class="{selCTitle: !tabIndex}" class="couseKind" @click="tabCkIndex(0)">课程章节({{ currentIndex }}/{{ pageData.chapter.length }})</div>
         <div :class="{selCTitle: tabIndex}" class="couseKind" @click="tabCkIndex(1)">课程精华</div>
       </div>
       <div :style="ulStyle" class="underLine"/>
       <div v-if="!tabIndex" :style="contentHeight" class="chapterList">
         <div v-for="(it, index) in pageData.chapter" :key="it.id" class="chapterItem" @click="tabChapter(index, 1)">
-          <div v-if="chapterIndex - 1 !== index" class="ctIndex">{{ index + 1 }}</div>
-          <div v-if="chapterIndex - 1 === index" class="imgIcon">
+          <div v-if="currentIndex - 1 !== index" class="ctIndex">{{ index + 1 }}</div>
+          <div v-if="currentIndex - 1 === index" :class="{'line-late': bplaying}" class="imgIcon">
             <div class="line1"/>
             <div class="line2"/>
             <div class="line3"/>
             <div class="line4"/>
           </div>
           <div class="ctInfo">
-            <div :class="{seTitle: chapterIndex - 1 === index}" class="ctTitle">{{ it.title }}</div>
+            <div :class="{seTitle: currentIndex - 1 === index}" class="ctTitle">{{ it.title }}</div>
             <div class="detailInfo">
               <div class="pIcon"/>
               <span>{{ it.click }}</span>
@@ -45,15 +63,15 @@
       <div v-if="tabIndex" :style="contentHeight" class="chapterE">
         <div id="pptContentDIVdiv" class="pptContentDIVdiv">
           <div :class="{deAni: !deAni}" class="pptContentDIV bd">
-            <div v-for="(con,index) in pageData.chapter[chapterIndex - 1].imgs" :key="index" :style="pptSEStyle" class="box">
+            <div v-for="(con,index) in pageData.chapter[currentIndex - 1].imgs" :key="index" :style="pptSEStyle" class="box">
               <div class="pptContent pptSpecial" >
-                <img :src="con" @click="preView(pageData.chapter[chapterIndex - 1].imgs, index)">
+                <img :src="con" @click="preView(pageData.chapter[currentIndex - 1].imgs, index)">
               </div>
             </div>
           </div>
           <div class="hd">
             <ul :style="icStyle">
-              <li v-for="(li, index) in pageData.chapter[chapterIndex - 1].imgs.length" :key="index" :class="{onShow:index==listIndex}"/>
+              <li v-for="(li, index) in pageData.chapter[currentIndex - 1].imgs.length" :key="index" :class="{onShow:index==listIndex}"/>
             </ul>
           </div>
         </div>
@@ -63,18 +81,35 @@
 </template>
 <script>
 import titleBar from '@/components/titleBar'
-import { getCourseShow, pushTime, courseLike } from '@/api/mainPage'
+import { mapGetters, mapMutations } from 'vuex'
+import slider from '@/components/slider'
+import { getCourseShow, courseLike } from '@/api/mainPage'
 export default {
   name: 'CourseList',
   components: {
-    titleBar
+    titleBar,
+    slider
+  },
+  filters: {
+    // 时间字符格式化
+    time(value) {
+      var length = Math.floor(parseInt(value))
+      var minute = Math.floor(value / 60)
+      if (minute < 10) {
+        minute = '0' + minute
+      }
+      var second = length % 60
+      if (second < 10) {
+        second = '0' + second
+      }
+      return minute + ':' + second
+    }
   },
   data() {
     return {
       deAni: false,
       listIndex: 0, // ppt当前位置索引
       courseName: '', // pageTitle
-      chapterIndex: 1, // 章节序号
       tabIndex: false, // tab切换
       pageData: {
         chapter: []
@@ -101,51 +136,94 @@ export default {
       scrollObj: '' // 设置滑动位置的主对象
     }
   },
+  computed: {
+    ...mapGetters([
+      'currentTime',
+      'bufferedTime',
+      'durationTime',
+      'media',
+      'bplaying',
+      'courseInfo'
+    ]),
+    currentIndex: {
+      get: function() {
+        return this.$store.getters.currentIndex
+      },
+      set: function(newVal) {
+      }
+    },
+    prCurrentTime: {
+      get: function() {
+        return this.$store.getters.prCurrentTime
+      },
+      set: function(newVal) {
+      }
+    }
+  },
   created() {
     this.getCourseList()
-    this.ckIndex = this.$store.getters.ckIndex
   },
   beforeMount: function() {},
   mounted: function() {
     this.contentHeight = {
       height: window.innerHeight / window.innerWidth * 10 - 8.9 + 'rem'
     }
-    var _self = this
+    // var _self = this
     if (this.exploreOut === -1) {
-      window.addEventListener('popstate', function(e) {
-        if (_self.exploreOut === -1) {
-          const time = _self.specialMark ? saveingTime.toString() : _self.mediaObj[0].getCurrentTime()
-          _self.pageData.chapter[_self.chapterIndex - 1].rtime = time
-          pushTime(_self.pageData.id, _self.pageData.chapter[_self.chapterIndex - 1].id, time).then(response => {
+      // window.addEventListener('popstate', function(e) {
+      //   if (_self.exploreOut === -1) {
+      //     const time = _self.specialMark ? saveingTime.toString() : _self.mediaObj[0].getCurrentTime()
+      //     _self.pageData.chapter[_self.currentIndex - 1].rtime = time
+      //     pushTime(_self.pageData.id, _self.pageData.chapter[_self.currentIndex - 1].id, time).then(response => {
 
-          })
-        }
-        _self.exploreOut = 0
-        window.removeEventListener('popstate', null, false)
-      }, false)
+      //     })
+      //   }
+      //   _self.exploreOut = 0
+      //   window.removeEventListener('popstate', null, false)
+      // }, false)
     }
   },
   updated: function() {
     if (this.slideMark) {
-      var _self = this
-      TouchSlide({ slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
-        _self.listIndex = a
-        if (!_self.deAni) {
-          setTimeout(() => {
-            _self.deAni = true
-          }, 200)
-        }
+      // var _self = this
+      // TouchSlide({ slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
+      //   _self.listIndex = a
+      //   if (!_self.deAni) {
+      //     setTimeout(() => {
+      //       _self.deAni = true
+      //     }, 200)
+      //   }
 
-        if (b > 5 && a >= 2 && a <= b - 3) {
-          _self.icStyle = {
-            transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
-          }
-        }
-      } })
+      //   if (b > 5 && a >= 2 && a <= b - 3) {
+      //     _self.icStyle = {
+      //       transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
+      //     }
+      //   }
+      // } })
       this.slideMark = false
     }
   },
   methods: {
+    changeTime(val) {
+      // this.toggleStatus()
+      this.prCurrentTime = val
+      // this.$store.commit('updateCurrentTime', (val * this.durationTime) / 100)
+      var myaudio = document.getElementById('audioPlay')
+      myaudio.currentTime = (val * this.durationTime) / 100
+      // var time = (val * this.durationTime) / 100
+      // this.$store.commit('changeTime', time)
+      // this.$store.commit('setChange', true)
+    },
+    toggleStatus() {
+      var audioDom = document.getElementById('audioPlay')
+      if (this.bplaying) {
+        audioDom.pause()
+        this.$store.commit('pause')
+      } else {
+        audioDom.play()
+        this.$store.commit('play')
+      }
+    },
     cuLike() {
       courseLike(this.pageData.id, !this.pageData.is_like).then(response => {
         this.pageData.is_like = !this.pageData.is_like
@@ -153,31 +231,34 @@ export default {
     },
     goback() {
       // const time = this.specialMark ? saveingTime.toString() : this.mediaObj[0].getCurrentTime()
-      // pushTime(this.pageData.id, this.pageData.chapter[this.chapterIndex - 1].id, time).then(response => {
+      // pushTime(this.pageData.id, this.pageData.chapter[this.currentIndex - 1].id, time).then(response => {
       // })
       this.$router.goBack()
+      this.$store.commit('toggleDetail')
     },
     tabChapter(index, mark) {
-      if (mark) {
-        const time = this.specialMark ? saveingTime.toString() : this.mediaObj[0].getCurrentTime()
-        this.pageData.chapter[this.chapterIndex - 1].rtime = time
-        pushTime(this.pageData.id, this.pageData.chapter[this.chapterIndex - 1].id, time).then(response => {
-        })
-      }
-      var url = this.pageData.chapter[this.chapterIndex - 1].media
-      var itemName = url.substring(url.length - 3, url.length)
-      this.audioItem = itemName === 'mp3' ? 1 : 0
-      this.specialMark = false
-      this.chapterIndex = index + 1
-      if (navigator.userAgent.indexOf('HONORBND') !== -1 && !this.audioItem) {
-        videoPlayer('#videoPlayDIV', this.pageData.chapter[index], null, this.audioItem)
-        this.specialMark = true
-      } else {
-        this.formatMediaObj(this.pageData.chapter[index])
-        this.formatMediaObj(this.pageData.chapter[index])
-      }
-      this.mediaWndHeight = document.getElementById('videoPlayDIV').clientHeight
-      this.fullScr = { top: this.mediaWndHeight / window.innerWidth * 10 + 0.5 + 'rem' }
+      this.toggleStatus()
+      this.$store.commit('setAudioIndex', index)
+      // if (mark) {
+      //   const time = this.specialMark ? saveingTime.toString() : this.mediaObj[0].getCurrentTime()
+      //   this.pageData.chapter[this.currentIndex - 1].rtime = time
+      //   pushTime(this.pageData.id, this.pageData.chapter[this.currentIndex - 1].id, time).then(response => {
+      //   })
+      // }
+      // var url = this.pageData.chapter[this.currentIndex - 1].media
+      // var itemName = url.substring(url.length - 3, url.length)
+      // this.audioItem = itemName === 'mp3' ? 1 : 0
+      // this.specialMark = false
+      // this.currentIndex = index + 1
+      // if (navigator.userAgent.indexOf('HONORBND') !== -1 && !this.audioItem) {
+      //   // videoPlayer('#videoPlayDIV', this.pageData.chapter[index], null, this.audioItem)
+      //   this.specialMark = true
+      // } else {
+      //   this.formatMediaObj(this.pageData.chapter[index])
+      //   this.formatMediaObj(this.pageData.chapter[index])
+      // }
+      // this.mediaWndHeight = document.getElementById('videoPlayDIV').clientHeight
+      // this.fullScr = { top: this.mediaWndHeight / window.innerWidth * 10 + 0.5 + 'rem' }
     },
     tabCkIndex(index) {
       this.deAni = false
@@ -186,7 +267,7 @@ export default {
       if (this.tabIndex) this.slideMark = true
     },
     preView(img_url, index) {
-      preImgView(img_url, index)
+      // preImgView(img_url, index)
     },
     getCourseList() {
       this.listLoading = true
@@ -200,7 +281,21 @@ export default {
           })
           return
         }
-        this.tabChapter(0, 0)
+        //  add to global list
+        const tempInfo = {
+          id: this.pageData.id,
+          poster: this.pageData.poster
+        }
+
+        if (this.$store.getters.courseId !== this.$store.getters.courseInfo.id || this.$store.getters.courseId === 0) {
+          document.getElementById('audioPlay').pause()
+          this.$store.commit('pause')
+          this.$store.commit('setMediaList', this.pageData.chapter)
+          this.$store.commit('setMedia')
+        }
+        this.$store.commit('toggleDetail')
+        // this.$store.commit('play')
+        this.$store.commit('setCourseInfo', tempInfo)
       })
     },
     fuScr() {
@@ -326,7 +421,7 @@ export default {
           document.getElementsByTagName('video')[0].poster = _self.pageData.poster
           // document.getElementsByTagName('video')[0].src = url;
         }
-        this.mediaObj = plyr.setup()
+        // this.mediaObj = plyr.setup()
       } else {
         this.mediaObj[0].destroy()
         document.getElementsByTagName('video')[0].style.height = '5.625rem'
@@ -338,7 +433,7 @@ export default {
           document.getElementsByTagName('video')[0].poster = _self.pageData.poster
           // document.getElementsByTagName('video')[0].poster = 'https://cdncollege.quansuwangluo.com/image/video/audioPoster1.jpg'
         }
-        this.mediaObj = plyr.setup()
+        // this.mediaObj = plyr.setup()
         this.mediaObj[0].on('loadeddata', function() {
           _self.mediaObj[0].play()
           if (url.rtime !== '') {
@@ -349,7 +444,11 @@ export default {
     },
     pushHistory() {
 
-    }
+    },
+    ...mapMutations([
+      'playNext',
+      'playPrev'
+    ])
   }
 }
 </script>
@@ -391,23 +490,87 @@ export default {
       color: #252525;
       font-weight: 600;
     }
+
+  }
+  .cd-wrapper {
+    position: relative;
+    margin: 0.5rem auto;
+    width: 4rem;
+    height: 4rem;
+    img {
+      width: 100%;
+      height: 100%;
+      // min-height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+  .cd-rotate {
+    animation: rotating 10s linear .3s infinite;
+  }
+  .pro-wrap{
+    width: 8.6rem;
+    margin: 0 auto;
+  }
+  .time {
+    color: #8A8A8A;
+    width: 8.6rem;
+    margin: 0 auto;
+    font-size: 0.35rem;
+    #cur {
+      float: left;
+    }
+    #total {
+      float: right;
+    }
+  }
+  .optionBtns{
+    clear: both;
+    display: flex;
+    margin: 0 0.7rem;
+    height: 2rem;
+    > div {
+      align-self: center;
+    }
     .cuLike{
-      position: absolute;
-      z-index: 2;
-      top: 0.3rem;
-      right: 0.3rem;
       width: 0.67rem;
       height: 0.616rem;
       // margin-left: 0.5rem;
       background: url(https://cdncollege.quansuwangluo.com/mx_college_th/like.png) no-repeat;
       background-size: 100% 100%;
+      ~ div{
+        margin-left: 1rem;
+      }
     }
     .cuLiked{
       background: url(https://cdncollege.quansuwangluo.com/mx_college_th/likeed.png) no-repeat;
       background-size: 100% 100%;
     }
+    .mini-btn{
+      width: 1rem;
+      height: 1rem;
+      background-size: 100% 100% !important;
+    }
+    .player-list{
+      background: url(https://cdncollege.quansuwangluo.com/mx_college_th/prev.png) no-repeat;
+    }
+    .pause{
+      background: url(https://cdncollege.quansuwangluo.com/mx_college_th/play.png) no-repeat !important;
+      background-size: 100% 100% !important;
+    }
+    .player{
+      width: 2rem;
+      height: 2rem;
+      margin-left: 0.5rem !important;
+      background: url(https://cdncollege.quansuwangluo.com/mx_college_th/pause.png) no-repeat;
+      +div{
+        margin-left: 0.5rem !important;
+      }
+    }
+    .next{
+      background: url(https://cdncollege.quansuwangluo.com/mx_college_th/next.png) no-repeat;
+    }
   }
-
   .turnAround{
     position: absolute;
     /*background-color: red;*/
@@ -454,6 +617,7 @@ export default {
     // opacity: 0;
   }
   .forpos{
+    clear: both;
     height: 0.3rem;
     background: #F7F7F7;
   }
@@ -515,7 +679,7 @@ export default {
           width:3px;
           height:100%;
           background:#FF7400;
-          animation: strechdelay 1s infinite ease-in-out ;
+
         }
         .line2{
           animation-delay:-0.9s;
@@ -525,6 +689,11 @@ export default {
         }
         .line4{
           animation-delay:-0.7s;
+        }
+      }
+      .line-late{
+        >div{
+          animation: strechdelay 1s infinite ease-in-out ;
         }
       }
       .ctInfo{
@@ -632,6 +801,10 @@ export default {
 }
 .coursesList::-webkit-scrollbar, .chapterList::-webkit-scrollbar, .chapterE::-webkit-scrollbar {
   display: none;
+}
+@keyframes rotating {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
 }
 @keyframes strechdelay{
   0%,40%,100%{

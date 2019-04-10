@@ -1,7 +1,7 @@
 <template>
   <transition name="fade">
     <div id="mainPage" class="mainPage">
-      <slider class="song-slider" @change="changeTime" v-model="prCurrentTime"/>
+      <slider v-model="prCurrentTime" class="song-slider" @change="changeTime"/>
       <div class="search" @click="search">
         <div class="searchIcon"/>
         <div class="plachoder" v-text="plachoder"/>
@@ -87,20 +87,20 @@ export default {
   updated: function() {
     if (this.slideMark) {
       var _self = this
-      TouchSlide({ prvBtn: '#quesPrev', nextBtn: '#quesNext', slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
-        _self.listIndex = a
-        // console.log(a)
-        if (!_self.deAni) {
-          setTimeout(() => {
-            _self.deAni = true
-          }, 200)
-        }
-        if (b > 5 && a >= 2 && a <= b - 3) {
-          _self.icStyle = {
-            transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
-          }
-        }
-      } })
+      // TouchSlide({ prvBtn: '#quesPrev', nextBtn: '#quesNext', slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
+      //   _self.listIndex = a
+      //   // console.log(a)
+      //   if (!_self.deAni) {
+      //     setTimeout(() => {
+      //       _self.deAni = true
+      //     }, 200)
+      //   }
+      //   if (b > 5 && a >= 2 && a <= b - 3) {
+      //     _self.icStyle = {
+      //       transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
+      //     }
+      //   }
+      // } })
       this.slideMark = false
       this.intNum = setInterval(() => {
         if (!document.getElementById('quesPrev') || !document.getElementById('quesNext')) {
@@ -123,7 +123,7 @@ export default {
       console.log(value)
     },
     preView(img_url, index) {
-      preImgView(img_url, index)
+      // preImgView(img_url, index)
     },
     getData(id) {
       this.listLoading = true

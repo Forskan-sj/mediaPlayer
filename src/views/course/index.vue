@@ -87,6 +87,10 @@ export default {
       })
     },
     goMediaPage(id) {
+      const tempIndex = this.$store.getters.courseId === id
+      if (!tempIndex) {
+        this.$store.commit('setCurrentIndex', 0)
+      }
       this.$store.dispatch('SetCID', id)
       this.$router.push('mediaPage')
     }

@@ -1,14 +1,20 @@
 <template>
   <transition name="fade">
-    <div class="player-mini">
+    <div class="player-mini" @click="showDetail">
       <div class="mini-content">
-        <audio :src="audio.url" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next" id="audioPlay"/>
+        <audio id="audioPlay" :src="media.media" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next"/>
         <div class="info">
-          <div class="name xmpname">{{audio.name}}</div>
+          <img :class="{playAni: bplaying}" :src="courseInfo.poster + '?x-oss-process=image/resize,l_100'" alt="">
+          <div class="name xmpname">{{ media.title }}</div>
+        </div>
+        <div class="control" @click.stop>
+          <div class="mini-btn player-list" @click="playPrev"/>
+          <div :class="{pause: bplaying}" class="mini-btn player" @click="toggleStatus"/>
+          <div class="mini-btn next" @click="next"/>
         </div>
         <div class="pro">
-          <div class="pro-load proload" :style="{'transform': 'tranlateX(' + prBufferedTime + '%'}"/>
-          <div class="pro-play proplay" :style="{'transform': 'tranlateX(' + prCurrentTime + '%'}"/>
+          <div :style="{ 'transform': 'translateX(' + prBufferedTime + '%)' }" class="pro-load proload"/>
+          <div :style="{ 'transform': 'translateX(' + prCurrentTime + '%)' }" class="pro-play proplay"/>
         </div>
       </div>
     </div>
@@ -17,20 +23,24 @@
 <script>
 import { mapMutations, mapGetters } from 'vuex'
 export default {
-  name: 'TitleBar',
-  props: {
-    tname: {
-      type: String,
-      default() {
-        return []
-      }
-    }
-  },
+  name: 'Mini',
   data() {
     return {
       loadedTime: 0,
       playerTime: 0
     }
+  },
+  computed: {
+    ...mapGetters([
+      'media',
+      'courseInfo',
+      'bplaying',
+      'bloading',
+      'currentTime',
+      'prBufferedTime',
+      'tempCurrentTime',
+      'prCurrentTime'
+    ])
   },
   beforeMount: function() {},
   mounted: function() {
@@ -40,8 +50,16 @@ export default {
 
   },
   methods: {
+    showDetail() {
+      this.$router.push('mediaPage')
+      // this.$store.commit('toggleDetail')
+    },
+    showList() {
+
+    },
     updateTime() {
       var vm = this
+      // console.log('object')
       var myaudio = document.getElementById('audioPlay')
       var time = parseInt(myaudio.currentTime)
       myaudio.onsuspend = () => {
@@ -50,13 +68,21 @@ export default {
           vm.$store.commit('updateBufferedTime', parseInt(myaudio.buffered.end(0)))
         }
       }
+      myaudio.onloadedmetadata = () => {
+        myaudio.currentTime = this.$store.getters.media.rtime
+      }
+      // myaudio.onended = () => {
+      //   this.$store.commit('playNext')
+      // }
       vm.$store.commit('updateDurationTime', parseInt(myaudio.duration))
+      vm.$store.commit('updateCurrentTime', time)
       // if (this.)
     },
-    canPlayMedia(){
+    canPlayMedia() {
+      var myaudio = document.getElementById('audioPlay')
       this.$store.commit('closeLoading')
       this.$store.commit('play')
-      document.getElementById('audioPlay').play()
+      myaudio.play()
     },
     loadError() {
       if (document.getElementById('audioPlay').currentSrc) {
@@ -69,7 +95,8 @@ export default {
     ...mapMutations([
       'play',
       'pause',
-      'playNext'
+      'playNext',
+      'playPrev'
     ]),
     next() {
       this.toggleStatus()
@@ -84,17 +111,6 @@ export default {
         audioDom.play()
         this.$store.commit('play')
       }
-    },
-    computed: {
-      ...mapGetters([
-        'audio',
-        'bplaying',
-        'bloading',
-        'currentTime',
-        'prBufferedTime',
-        'tempCurrentTime',
-        'prCurrentTime'
-      ])
     }
   }
 }
@@ -102,36 +118,101 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-.tips{
-  height: 1.2rem;
-  background: white;
-  .returnback{
-    position: absolute;
-    width: 1.2rem;
-    height: 1.2rem;
-  }
-  .goback{
-    position: absolute;
-    z-index: 2;
-    top: 0.4rem;
-    left: 0.5rem;
-    width: 0.35rem;
-    height: 0.35rem;
-    border-top: 2px solid black;
-    border-left: 2px solid black;
-    transform: rotateZ(-45deg)
-  }
-  .titleName{
-    line-height: 1.2rem;
-    text-align: center;
-    letter-spacing: 0.05rem;
-    font-size: 0.5rem;
-    color: #252525;
-    font-weight: 600;
+.player-mini {
+  width: 100%;
+  height: 1.5rem;
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  background-color: rgba(255,255,255,.9);
+  color: #333333;
+  .mini-content{
+    .info{
+      overflow: hidden;
+      position: relative;
+      width: 6rem;
+      float: left;
+      padding-top: 0.2rem;
+      padding-left: .1rem;
+      .playAni{
+        // transition: all 3s inherit;
+        animation: playAni 8s infinite linear;
+      }
+      img{
+        width: 1rem;
+        height: 1rem;
+        object-fit: cover;
+        border-radius: 50%;
+        float: left;
+      }
+      .name{
+        padding-left: 0.2rem;
+        font-size: .35rem;
+        line-height: 1rem;
+        overflow: hidden;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: black;
+      }
+    }
+    .control{
+      // clear: both;
+      float: right;
+      width: 4rem;
+      height: 1.5rem;
+      display: flex;
+      >*{
+        align-self: center;
+      }
+      .mini-btn{
+        width: 1rem;
+        height: 1rem;
+        background-size: 100% 100% !important;
+      }
+      .player-list{
+        background: url(https://cdncollege.quansuwangluo.com/mx_college_th/prev.png) no-repeat;
+      }
+      .pause{
+        background: url(https://cdncollege.quansuwangluo.com/mx_college_th/play.png) no-repeat !important;
+        background-size: 100% 100% !important;
+      }
+      .player{
+        background: url(https://cdncollege.quansuwangluo.com/mx_college_th/pause.png) no-repeat;
+      }
+      .next{
+        background: url(https://cdncollege.quansuwangluo.com/mx_college_th/next.png) no-repeat;
+      }
+    }
+    .pro {
+      width: 100%;
+      height: 1px;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      background-color: rgba(255,255,255,.5);
+      .pro-load, .pro-play {
+        width: 100%;
+        height: 1px;
+        position: absolute;
+        left: -100%;
+      }
+      .pro-load {
+        background-color: rgba(220, 217, 217, 0.4);
+      }
+      .pro-play {
+        background-color: red;
+      }
+    }
   }
 }
-
-// .list::-webkit-scrollbar {
-//   display: none;
-// }
+@keyframes playAni{
+  0%{
+    transform: rotateZ(0deg);
+  }
+  100%{
+    transform: rotateZ(360deg);
+  }
+}
 </style>
