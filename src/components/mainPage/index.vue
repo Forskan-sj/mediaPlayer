@@ -1,7 +1,6 @@
 <template>
   <transition name="fade">
     <div id="mainPage" class="mainPage">
-      <slider v-model="prCurrentTime" class="song-slider" @change="changeTime"/>
       <div class="search" @click="search">
         <div class="searchIcon"/>
         <div class="plachoder" v-text="plachoder"/>
@@ -11,7 +10,7 @@
           <div :class="{deAni: !deAni}" class="pptContentDIV bd">
             <div v-for="(con,index) in pageData.ads" :key="index" class="box">
               <div class="pptContent pptSpecial" >
-                <img :src="con" @click="preView(pageData.ads, index)">
+                <img :src="con + '?x-oss-process=image/resize,l_500'" @click="preView(pageData.ads, index)">
               </div>
             </div>
           </div>
@@ -25,7 +24,7 @@
       <div class="mpcontent">
         <div v-for="(it, idx) in pageData.cate" :key="idx" class="courseKind" @click="goCourseList(idx)">
           <div class="ckTitle">{{ it.name }}</div>
-          <img :src="it.pic">
+          <img :src="it.pic + '?x-oss-process=image/resize,l_500'">
           <div class="des">
             <div class="rpIcon"/>
             <div class="courseNum" v-text="'共'+it.num+'课'"/>
@@ -41,7 +40,6 @@
 </template>
 <script>
 import { getCate, getURLParams } from '@/api/mainPage'
-import slider from '@/components/slider'
 export default {
   name: 'MainPage',
   // props: {
@@ -52,9 +50,6 @@ export default {
   //     }
   //   }
   // },
-  components: {
-    slider
-  },
   data() {
     return {
       plachoder: '请输入关键字，找你想要的课程',
@@ -66,8 +61,7 @@ export default {
       icStyle: {},
       slideMark: false,
       intNum: -1,
-      listIndex: 0,
-      prCurrentTime: 30
+      listIndex: 0
     }
   },
   created() {
@@ -87,20 +81,20 @@ export default {
   updated: function() {
     if (this.slideMark) {
       var _self = this
-      // TouchSlide({ prvBtn: '#quesPrev', nextBtn: '#quesNext', slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
-      //   _self.listIndex = a
-      //   // console.log(a)
-      //   if (!_self.deAni) {
-      //     setTimeout(() => {
-      //       _self.deAni = true
-      //     }, 200)
-      //   }
-      //   if (b > 5 && a >= 2 && a <= b - 3) {
-      //     _self.icStyle = {
-      //       transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
-      //     }
-      //   }
-      // } })
+      TouchSlide({ prvBtn: '#quesPrev', nextBtn: '#quesNext', slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
+        _self.listIndex = a
+        // console.log(a)
+        if (!_self.deAni) {
+          setTimeout(() => {
+            _self.deAni = true
+          }, 200)
+        }
+        if (b > 5 && a >= 2 && a <= b - 3) {
+          _self.icStyle = {
+            transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
+          }
+        }
+      } })
       this.slideMark = false
       this.intNum = setInterval(() => {
         if (!document.getElementById('quesPrev') || !document.getElementById('quesNext')) {
@@ -119,11 +113,8 @@ export default {
     }
   },
   methods: {
-    changeTime(value) {
-      console.log(value)
-    },
     preView(img_url, index) {
-      // preImgView(img_url, index)
+      preImgView(img_url, index)
     },
     getData(id) {
       this.listLoading = true
@@ -185,7 +176,7 @@ export default {
   }
   .swiper{
     width: 100%;
-    height: 5rem;
+    height: 4.5rem;
     #pptContentDIVdiv{
       position: relative;
       // border-top: 1px solid #E4E4E4;

@@ -6,7 +6,7 @@
         <div class="listcontens">
           <div v-for="(it, idx) in pageData.now" :key="idx" class="itCourse" @click="goMediaPage(it.id)">
             <div class="pic">
-              <img :src="it.pic" alt="">
+              <img :src="it.pic + '?x-oss-process=image/resize,l_300'" alt="">
               <div class="imgIcon"/>
             </div>
             <div class="des">

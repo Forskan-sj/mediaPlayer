@@ -1,4 +1,4 @@
-// import { login, logout, getInfo } from '@/api/login'
+import { pushTime } from '@/api/mainpage'
 // import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const media = {
@@ -16,12 +16,13 @@ const media = {
     currentIndex: 1,
     bplaying: false,
     bloading: false,
-    showDetail: false,
+    showDetail: false, // 是否在详情页
     mediaList: [],
     currentTime: 0,
     tmpCurrentTime: 0,
     durationTime: 0,
     bufferedTime: 0,
+    videoMark: false, // 是否为视频
     change: false
   },
   mutations: {
@@ -31,11 +32,19 @@ const media = {
     pause(state) {
       state.bplaying = false
     },
-    toggleDetail(state) {
-      state.showDetail = !state.showDetail
+    toggleDetail(state, flag) {
+      state.showDetail = flag
+    },
+    setVideoMark(state, flag) {
+      state.videoMark = flag
     },
     setMedia(state) {
       state.audio = state.mediaList[state.currentIndex - 1]
+      if (state.audio.media.substring(state.audio.media.length - 3) === 'mp4') {
+        state.videoMark = true
+      } else {
+        state.videoMark = false
+      }
     },
     setCourseInfo(state, info) {
       state.courseInfo = info
@@ -88,6 +97,8 @@ const media = {
       state.currentTime = 0
     },
     playNext(state) {
+      pushTime(state.courseInfo.id, state.mediaList[state.currentIndex - 1].id, state.currentTime).then(response => {
+      })
       state.currentIndex++
       if (state.currentIndex > state.mediaList.length) {
         state.currentIndex = 1
@@ -95,6 +106,8 @@ const media = {
       state.audio = state.mediaList[state.currentIndex - 1]
     },
     playPrev(state) {
+      pushTime(state.courseInfo.id, state.mediaList[state.currentIndex - 1].id, state.currentTime).then(response => {
+      })
       state.currentIndex--
       if (state.currentIndex < 1) {
         state.currentIndex = 1

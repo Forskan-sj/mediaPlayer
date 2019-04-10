@@ -1,21 +1,37 @@
 <template>
   <transition name="fade">
-    <div class="player-mini" @click="showDetail">
+    <div :class="{inPage: showDetail && videoMark, outVideo: !showDetail && videoMark}" class="player-mini" @click="showDetailPage">
       <div class="mini-content">
-        <audio id="audioPlay" :src="media.media" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next" autoplay="autoplay"/>
-        <div class="info">
-          <img :class="{playAni: bplaying}" :src="courseInfo.poster + '?x-oss-process=image/resize,l_100'" alt="">
-          <div class="name xmpname">{{ media.title }}</div>
+        <video
+          v-if="media.media.substring(media.media.length - 3) === 'mp4'"
+          id="audioPlay"
+          :src="media.media"
+          webkit-playsinline=""
+          playsinline=""
+          x5-playsinline=""
+          x-webkit-airplay="allow"
+          autoplay="autoplay"
+          @timeupdate="updateTime"
+          @canplay="canPlayMedia"
+          @error="loadError"
+          @ended="next"/>
+        <div v-show="!showDetail">
+          <audio v-if="media.media.substring(media.media.length - 3) !== 'mp4'" id="audioPlay" :src="media.media" autoplay="autoplay" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next"/>
+          <div class="info">
+            <img :class="{playAni: bplaying}" :src="courseInfo.poster + '?x-oss-process=image/resize,l_100'" alt="">
+            <div class="name xmpname">{{ media.title }}</div>
+          </div>
+          <div class="control" @click.stop>
+            <div class="mini-btn player-list" @click="playPrev"/>
+            <div :class="{pause: bplaying}" class="mini-btn player" @click="toggleStatus"/>
+            <div class="mini-btn next" @click="next"/>
+          </div>
+          <div class="pro">
+            <div :style="{ 'transform': 'translateX(' + prBufferedTime + '%)' }" class="pro-load proload"/>
+            <div :style="{ 'transform': 'translateX(' + prCurrentTime + '%)' }" class="pro-play proplay"/>
+          </div>
         </div>
-        <div class="control" @click.stop>
-          <div class="mini-btn player-list" @click="playPrev"/>
-          <div :class="{pause: bplaying}" class="mini-btn player" @click="toggleStatus"/>
-          <div class="mini-btn next" @click="next"/>
-        </div>
-        <div class="pro">
-          <div :style="{ 'transform': 'translateX(' + prBufferedTime + '%)' }" class="pro-load proload"/>
-          <div :style="{ 'transform': 'translateX(' + prCurrentTime + '%)' }" class="pro-play proplay"/>
-        </div>
+
       </div>
     </div>
   </transition>
@@ -37,8 +53,10 @@ export default {
       'bplaying',
       'bloading',
       'currentTime',
+      'videoMark',
       'prBufferedTime',
       'tempCurrentTime',
+      'showDetail',
       'prCurrentTime'
     ])
   },
@@ -50,7 +68,7 @@ export default {
 
   },
   methods: {
-    showDetail() {
+    showDetailPage() {
       this.$router.push('mediaPage')
       // this.$store.commit('toggleDetail')
     },
@@ -118,6 +136,27 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
+.outVideo{
+  position: absolute;
+  top: 1.2rem;
+  background: black !important;
+  left: 0;
+  right: 0;
+  height: 7.125rem !important;
+  z-index: 2;
+  .name{
+    color: white !important;
+  }
+}
+.inPage{
+  position: absolute;
+  top: 1.2rem;
+  background: black !important;
+  left: 0;
+  right: 0;
+  height: 5.625rem !important;
+  z-index: 2;
+}
 .player-mini {
   width: 100%;
   height: 1.5rem;
@@ -128,6 +167,14 @@ export default {
   background-color: rgba(255,255,255,.9);
   color: #333333;
   .mini-content{
+    video{
+      width: 100%;
+      height: 5.625rem;
+    }
+    .inPage{
+      position: absolute;
+      top: 0;
+    }
     .info{
       overflow: hidden;
       position: relative;

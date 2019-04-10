@@ -10,7 +10,7 @@
       <div class="coursesList">
         <div v-for="(it, idx) in pageData" :key="idx" class="itCourse">
           <div class="pic" @click="goMediaPage(it.id)">
-            <img :src="it.pic" alt="">
+            <img :src="it.pic + '?x-oss-process=image/resize,l_300'" alt="">
             <div class="imgIcon"/>
           </div>
           <div class="des">
@@ -57,6 +57,10 @@ export default {
       this.listLoading = true
       search(this.key).then(response => {
         this.listLoading = false
+        if (!response.datas.length) {
+          showMsg('未搜索到相关课程', null)
+          return
+        }
         this.pageData = response.datas
       })
     },

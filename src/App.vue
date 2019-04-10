@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <router-view/>
-    <glbmp v-show="mediaList.length && !showDetail"/>
+    <glbmp v-show="mediaList.length && (!showDetail || videoMark)"/>
   </div>
 </template>
 
@@ -16,7 +16,8 @@ export default {
   computed: {
     ...mapGetters([
       'mediaList',
-      'showDetail'
+      'showDetail',
+      'videoMark'
     ])
   }
 }

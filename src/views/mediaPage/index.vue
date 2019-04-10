@@ -8,13 +8,6 @@
         <div class="titleName" v-text="courseName"/>
         <div :class="{cuLiked: pageData.is_like}" class="cuLike" @click="cuLike"/>
       </div>
-      <!-- <div id="turnAround" :style="turnAroundStyle" class="turnAround" style="display:none" @click="turnAround" /> -->
-      <!-- <div id="videoPlayDIV" :style="videoPlayerStyle" class="videoPlayer">
-        <video :poster="pageData.poster" webkit-playsinline="" playsinline="" x5-playsinline="" x-webkit-airplay="allow">
-          <source :src="mediaSource" type="video/mp4">
-        </video>
-      </div> -->
-      <!-- <div :style="fullScr" class="fullScreen" @click="fuScr"/> -->
       <div :class="{'cd-rotate': bplaying}" class="cd-wrapper">
         <div class="cd-mask"/>
         <img :src="courseInfo.poster" class="cd-img">
@@ -83,7 +76,7 @@
 import titleBar from '@/components/titleBar'
 import { mapGetters, mapMutations } from 'vuex'
 import slider from '@/components/slider'
-import { getCourseShow, courseLike } from '@/api/mainPage'
+import { getCourseShow, courseLike, pushTime } from '@/api/mainPage'
 export default {
   name: 'CourseList',
   components: {
@@ -122,9 +115,7 @@ export default {
       // 视频相关参数
       turnAroundStyle: '',
       bTurnAround: false,
-      fullScreenMark: false,
       fullScr: '',
-      videoPlayerStyle: '',
       furCount: 0, // 全屏次数计数
       exploreOut: -1, // 是否监听浏览器历史状态
       mediaObj: {}, // 媒体播放对象
@@ -168,51 +159,31 @@ export default {
     this.contentHeight = {
       height: window.innerHeight / window.innerWidth * 10 - 8.9 + 'rem'
     }
-    // var _self = this
-    if (this.exploreOut === -1) {
-      // window.addEventListener('popstate', function(e) {
-      //   if (_self.exploreOut === -1) {
-      //     const time = _self.specialMark ? saveingTime.toString() : _self.mediaObj[0].getCurrentTime()
-      //     _self.pageData.chapter[_self.currentIndex - 1].rtime = time
-      //     pushTime(_self.pageData.id, _self.pageData.chapter[_self.currentIndex - 1].id, time).then(response => {
-
-      //     })
-      //   }
-      //   _self.exploreOut = 0
-      //   window.removeEventListener('popstate', null, false)
-      // }, false)
-    }
   },
   updated: function() {
     if (this.slideMark) {
-      // var _self = this
-      // TouchSlide({ slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
-      //   _self.listIndex = a
-      //   if (!_self.deAni) {
-      //     setTimeout(() => {
-      //       _self.deAni = true
-      //     }, 200)
-      //   }
-
-      //   if (b > 5 && a >= 2 && a <= b - 3) {
-      //     _self.icStyle = {
-      //       transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
-      //     }
-      //   }
-      // } })
+      var _self = this
+      TouchSlide({ slideCell: '#pptContentDIVdiv', startFun: function(a, b) {
+        _self.listIndex = a
+        if (!_self.deAni) {
+          setTimeout(() => {
+            _self.deAni = true
+          }, 200)
+        }
+        if (b > 5 && a >= 2 && a <= b - 3) {
+          _self.icStyle = {
+            transform: 'translateX(-' + 10.5 * (a - 2) + 'px)'
+          }
+        }
+      } })
       this.slideMark = false
     }
   },
   methods: {
     changeTime(val) {
-      // this.toggleStatus()
       this.prCurrentTime = val
-      // this.$store.commit('updateCurrentTime', (val * this.durationTime) / 100)
       var myaudio = document.getElementById('audioPlay')
       myaudio.currentTime = (val * this.durationTime) / 100
-      // var time = (val * this.durationTime) / 100
-      // this.$store.commit('changeTime', time)
-      // this.$store.commit('setChange', true)
     },
     toggleStatus() {
       var audioDom = document.getElementById('audioPlay')
@@ -230,35 +201,12 @@ export default {
       })
     },
     goback() {
-      // const time = this.specialMark ? saveingTime.toString() : this.mediaObj[0].getCurrentTime()
-      // pushTime(this.pageData.id, this.pageData.chapter[this.currentIndex - 1].id, time).then(response => {
-      // })
       this.$router.goBack()
-      this.$store.commit('toggleDetail')
+      this.$store.commit('toggleDetail', false)
     },
     tabChapter(index, mark) {
       this.toggleStatus()
       this.$store.commit('setAudioIndex', index)
-      // if (mark) {
-      //   const time = this.specialMark ? saveingTime.toString() : this.mediaObj[0].getCurrentTime()
-      //   this.pageData.chapter[this.currentIndex - 1].rtime = time
-      //   pushTime(this.pageData.id, this.pageData.chapter[this.currentIndex - 1].id, time).then(response => {
-      //   })
-      // }
-      // var url = this.pageData.chapter[this.currentIndex - 1].media
-      // var itemName = url.substring(url.length - 3, url.length)
-      // this.audioItem = itemName === 'mp3' ? 1 : 0
-      // this.specialMark = false
-      // this.currentIndex = index + 1
-      // if (navigator.userAgent.indexOf('HONORBND') !== -1 && !this.audioItem) {
-      //   // videoPlayer('#videoPlayDIV', this.pageData.chapter[index], null, this.audioItem)
-      //   this.specialMark = true
-      // } else {
-      //   this.formatMediaObj(this.pageData.chapter[index])
-      //   this.formatMediaObj(this.pageData.chapter[index])
-      // }
-      // this.mediaWndHeight = document.getElementById('videoPlayDIV').clientHeight
-      // this.fullScr = { top: this.mediaWndHeight / window.innerWidth * 10 + 0.5 + 'rem' }
     },
     tabCkIndex(index) {
       this.deAni = false
@@ -267,7 +215,7 @@ export default {
       if (this.tabIndex) this.slideMark = true
     },
     preView(img_url, index) {
-      // preImgView(img_url, index)
+      preImgView(img_url, index)
     },
     getCourseList() {
       this.listLoading = true
@@ -290,157 +238,21 @@ export default {
         if (this.$store.getters.courseId !== this.$store.getters.courseInfo.id || this.$store.getters.courseId === 0) {
           document.getElementById('audioPlay').pause()
           this.$store.commit('pause')
+          if (this.$store.getters.courseInfo.id !== 0) {
+            pushTime(this.$store.getters.courseInfo.id, this.$store.getters.mediaList[this.currentIndex - 1].id, this.currentTime).then(response => {
+            })
+          }
           this.$store.commit('setMediaList', this.pageData.chapter)
           this.$store.commit('setMedia')
         }
-        this.$store.commit('toggleDetail')
+        this.$store.commit('toggleDetail', true)
         // this.$store.commit('play')
         this.$store.commit('setCourseInfo', tempInfo)
       })
     },
     fuScr() {
-      if (!this.audioItem) {
-        if (!this.fullScreenMark) {
-          this.videoTitleStyle = {
-            top: '0'
-          }
-          this.mediaWndHeight = document.getElementById('videoPlayDIV').clientHeight
-          if (this.bTurnAround) {
-            this.turnAround()
-          }
-          this.fullScr = { top: window.innerHeight - 37.5 + 'px' }
-
-          this.turnAroundStyle = { display: 'block !important' }
-          this.videoPlayerStyle = {
-            height: window.innerHeight + 'px !important',
-            width: '100% !important',
-            transform: 'rotateZ(0deg) translateY(0px)',
-            zIndex: '20'
-          }
-          document.getElementsByTagName('video')[0].style.height = '100%'
-          this.furCount++
-          this.pushHistory(1)
-        } else {
-          this.fullScr = { top: this.mediaWndHeight / window.innerWidth * 10 + 0.5 + 'rem' }
-          this.rebackStyle = {
-            display: 'block'
-          }
-          this.turnAroundStyle = { display: 'none !important' }
-          this.videoPlayerStyle = {
-            height: this.mediaWndHeight + 'px !important',
-            width: '100% !important',
-            transform: 'rotateZ(0deg) translateY(0px)',
-            zIndex: '20'
-          }
-          document.getElementsByTagName('video')[0].style.height = '5.625rem'
-          this.videoTitleStyle = {
-            top: '0',
-            width: window.innerWidth + 'px',
-            transform: 'rotate(0) translate(0)'
-          }
-          if (this.gobackMark !== 0) {
-            this.fullScreenMark = true
-          }
-          this.gobackMark = 0
-          // window.history.go(-1);
-        }
-        this.fullScreenMark = !this.fullScreenMark
-      }
     },
     turnAround() {
-      var screenHeight = window.innerHeight
-      var screenWidth = window.innerWidth
-      // console.log(screenHeight +"ssdss"+screenWidth);
-      if (this.bTurnAround) { // 旋转 → 正常
-        this.videoPlayerStyle = {
-          height: screenHeight + 'px !important',
-          width: screenWidth + 'px !important',
-          transform: 'rotateZ(0deg) translateY(0px)',
-          zIndex: '20'
-        }
-        document.getElementsByTagName('video')[0].style.height = '100%'
-        this.rebackStyle = {
-          display: 'block'
-        }
-        this.turnAroundStyle = {
-          display: 'block !important',
-          top: '20px',
-          right: '20px',
-          transform: 'rotateZ(0deg)'
-        }
-        this.videoTitleStyle = {
-          top: '0',
-          width: window.innerWidth + 'px',
-          transform: 'rotate(0) translate(0)'
-        }
-        var strVideoTitle = this.aorvIndex + 1 + '.' + this.mediaDtl.directory[this.aorvIndex].res_name
-        this.videoTitle = strVideoTitle.length > 12 ? strVideoTitle.substring(0, 12) + '...' : strVideoTitle
-        this.fullScr = {
-          top: window.innerHeight - 37.5 + 'px',
-          right: 0
-        }
-        this.bTurnAround = false
-      } else { // 正常 → 旋转
-        this.rebackStyle = {
-          display: 'none'
-        }
-        document.getElementsByTagName('video')[0].style.height = screenWidth + 'px'
-        this.videoPlayerStyle = {
-          height: screenWidth + 'px !important',
-          width: screenHeight + 'px !important',
-          transform: 'rotateZ(90deg) translateY(-' + screenWidth + 'px)',
-          zIndex: '20'
-        }
-        this.bTurnAround = true
-        this.turnAroundStyle = {
-          display: 'block !important',
-          transform: 'rotateZ(90deg)',
-          top: screenHeight - 52 + 'px',
-          bottom: 0,
-          right: '20px'
-        }
-        this.fullScr = {
-          top: window.innerHeight - 37.5 + 'px',
-          right: screenWidth - 37.5 + 'px'
-        }
-        this.videoTitleStyle = {
-          width: window.innerHeight + 'px',
-          transform: 'rotate(90deg) translateY(-' + window.innerWidth + 'px)'
-        }
-        strVideoTitle = this.aorvIndex + 1 + '.' + this.mediaDtl.directory[this.aorvIndex].res_name
-        this.videoTitle = strVideoTitle
-      }
-    },
-    formatMediaObj(url) {
-      var _self = this
-      // console.log('object')
-      if (!this.mediaObj.length) {
-        document.getElementsByTagName('source')[0].type = 'video/mp4'
-        if (_self.audioItem) {
-          document.getElementsByTagName('source')[0].type = 'audio/mp3'
-          document.getElementsByTagName('video')[0].poster = _self.pageData.poster
-          // document.getElementsByTagName('video')[0].src = url;
-        }
-        // this.mediaObj = plyr.setup()
-      } else {
-        this.mediaObj[0].destroy()
-        document.getElementsByTagName('video')[0].style.height = '5.625rem'
-        // document.getElementsByTagName('source')[0].src = url.res_url;
-        document.getElementsByTagName('source')[0].type = 'video/mp4'
-        document.getElementsByTagName('video')[0].src = url.media
-        if (_self.audioItem) {
-          document.getElementsByTagName('source')[0].type = 'audio/mp3'
-          document.getElementsByTagName('video')[0].poster = _self.pageData.poster
-          // document.getElementsByTagName('video')[0].poster = 'https://cdncollege.quansuwangluo.com/image/video/audioPoster1.jpg'
-        }
-        // this.mediaObj = plyr.setup()
-        this.mediaObj[0].on('loadeddata', function() {
-          _self.mediaObj[0].play()
-          if (url.rtime !== '') {
-            _self.mediaObj[0].seek(parseInt(url.rtime))
-          }
-        })
-      }
     },
     pushHistory() {
 
@@ -509,6 +321,8 @@ export default {
     animation: rotating 10s linear .3s infinite;
   }
   .pro-wrap{
+    position: relative;
+    z-index: 3;
     width: 8.6rem;
     margin: 0 auto;
   }
@@ -570,51 +384,6 @@ export default {
     .next{
       background: url(https://cdncollege.quansuwangluo.com/mx_college_th/next.png) no-repeat;
     }
-  }
-  .turnAround{
-    position: absolute;
-    /*background-color: red;*/
-    height: 1rem;
-    width: 1rem;
-    background-image: url(https://cdnneed.quansuwangluo.com/college/h5_static/image/classslices/around.png);
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    top: 8px;
-    right: 8px;
-    z-index: 2000;
-  }
-  .videoPlayer{
-    position: relative;
-    height: 5.625rem !important;
-    min-height: 10%;
-    /*max-height: 30%;*/
-    width: 100%;
-    z-index: 2;
-    transform-origin: 0 0;
-    overflow: hidden;
-  }
-  #videoTitle{
-    display: none;
-    position: absolute;
-    z-index: 80;
-    color: white;
-    text-align: center;
-    width: 100%;
-    height: 2em;
-    line-height: 2em;
-    overflow: hidden;
-    transition: all 0.5s ease-in-out;
-    transform-origin: left top;
-  }
-  .fullScreen{
-    position: absolute;
-    width: 1rem;
-    height: 1rem;
-    top: 23%;
-    right: 0;
-    z-index: 100;
-    background-color: blue;
-    // opacity: 0;
   }
   .forpos{
     clear: both;

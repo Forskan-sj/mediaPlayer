@@ -6,6 +6,7 @@ const getters = {
   name: state => state.user.name,
   courseInfo: state => state.media.courseInfo,
   media: state => state.media.audio,
+  videoMark: state => state.media.videoMark,
   bplaying: state => state.media.bplaying,
   bloading: state => state.media.bloading,
   showDetail: state => state.media.showDetail,

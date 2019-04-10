@@ -11,7 +11,7 @@
           <div v-for="(item, index) in pageData" :key="index" class="itContents">
             <div v-for="(it, idx) in item.course" :key="idx" class="itCourse" @click="goMediaPage(it.id)">
               <div class="pic">
-                <img :src="it.pic + '?x-oss-process=image/resize,l_600'" alt="">
+                <img :src="it.pic + '?x-oss-process=image/resize,l_300'" alt="">
                 <div class="imgIcon"/>
               </div>
               <div class="des">
@@ -87,10 +87,6 @@ export default {
       })
     },
     goMediaPage(id) {
-      const tempIndex = this.$store.getters.courseId === id
-      if (!tempIndex) {
-        this.$store.commit('setCurrentIndex', 0)
-      }
       this.$store.dispatch('SetCID', id)
       this.$router.push('mediaPage')
     }
@@ -202,12 +198,13 @@ export default {
               text-align: justify;
               font-size: 0.4rem;
               padding: 0.2rem 0;
-              // line-height: 1rem;
+              line-height: 0.5rem;
               font-weight: 600;
             }
             .tcInfo{
               height: 100%;
               color: #ADADAB;
+              line-height: 0.5rem;
               font-size: 0.38rem;
             }
             .desInfo{

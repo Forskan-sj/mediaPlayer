@@ -34,7 +34,7 @@ export default {
   methods: {
     goback() {
       if (this.$route.name === 'dashboard') {
-        // closeWin()
+        closeWin()
       }
       this.$router.goBack()
     }
