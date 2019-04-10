@@ -69,6 +69,8 @@ export default {
       }
       myaudio.onloadedmetadata = () => {
         myaudio.currentTime = this.$store.getters.media.rtime
+        this.$store.commit('play')
+        myaudio.play()
       }
       // myaudio.onended = () => {
       //   this.$store.commit('playNext')
@@ -77,10 +79,10 @@ export default {
       vm.$store.commit('updateCurrentTime', time)
     },
     canPlayMedia() {
-      var myaudio = document.getElementById('audioPlay')
+      // var myaudio = document.getElementById('audioPlay')
       this.$store.commit('closeLoading')
-      this.$store.commit('play')
-      myaudio.play()
+      // this.$store.commit('play')
+      // myaudio.play()
     },
     loadError() {
       if (document.getElementById('audioPlay').currentSrc) {
