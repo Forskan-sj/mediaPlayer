@@ -157,7 +157,7 @@ export default {
   beforeMount: function() {},
   mounted: function() {
     this.contentHeight = {
-      height: window.innerHeight / window.innerWidth * 10 - 8.9 + 'rem'
+      height: window.innerHeight / window.innerWidth * 10 - 10.9 + 'rem'
     }
   },
   updated: function() {
@@ -510,10 +510,11 @@ export default {
   }
   .chapterE{
     height: 100%;
+    border-top: 1px solid #E4E4E4;
     overflow-x: hidden;
     overflow-y: scroll;
     #pptContentDIVdiv{
-      border-top: 1px solid #E4E4E4;
+      position: relative;
       margin: 0 auto;
       overflow: hidden;
       color: #0E85A8;
@@ -543,10 +544,10 @@ export default {
         transition-duration: 0 !important;
       }
       .hd{
-        position: relative;
-        top: -0.6rem;
+        position: absolute;
+        bottom: -0.5rem;
         z-index: 100;
-        margin: -1rem auto;
+        right: 1.3rem;
         width: 57.5px;
         overflow: hidden;
         ul{
