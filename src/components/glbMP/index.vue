@@ -2,7 +2,7 @@
   <transition name="fade">
     <div class="player-mini" @click="showDetail">
       <div class="mini-content">
-        <audio id="audioPlay" :src="media.media" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next"/>
+        <audio id="audioPlay" :src="media.media" @timeupdate="updateTime" @canplay="canPlayMedia" @error="loadError" @ended="next" autoplay="autoplay"/>
         <div class="info">
           <img :class="{playAni: bplaying}" :src="courseInfo.poster + '?x-oss-process=image/resize,l_100'" alt="">
           <div class="name xmpname">{{ media.title }}</div>
@@ -70,9 +70,7 @@ export default {
       myaudio.onloadedmetadata = () => {
         myaudio.currentTime = this.$store.getters.media.rtime
         this.$store.commit('play')
-        setTimeout(() => {
-          myaudio.play()
-        }, 1000)
+        myaudio.play()
       }
       // myaudio.onended = () => {
       //   this.$store.commit('playNext')
